@@ -1,0 +1,59 @@
+---
+title: "Metcalfe Figure"
+author: "Katie McCauley"
+date: "11/14/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Read in Doug's OTU Table
+rm(list=ls())
+library(phyloseq)
+library(ggplot2)
+source("/data/Users/kmccauley/LabCode/DESeqFunctions.R")
+otu <- read.table("/data/Users/dfadrosh/otu_table_uparse_w_tax_NTC_filtered_filtered_reprare73265.txt", header=TRUE, check.names=FALSE, sep="\t", comment="", skip=1, row.names=1)
+dat <- read.table("/data/Users/dfadrosh/Metcalfe_paper/Metcalfe_sputum_mapping_expanded.txt", header=TRUE, check.names=FALSE, sep="\t", comment="")
+
+phyobj <- make_phyloseq(otu, dat, sampleid = "#SampleID")
+table(sample_data(phyobj)$L6_DMM)
+table(sample_data(phyobj)$SputumClusterGroup)
+sample_data(phyobj)$HMNgrouping <- factor(sample_data(phyobj)$dom_sputum_genus, labels=c("HMN","HMN","HMN","StrepPrev","StrepPrev"))
+sample_data(phyobj)$HMNgrouping <- relevel(sample_data(phyobj)$HMNgrouping, ref="StrepPrev")
+
+phyobj_genus <- tax_glom(phyobj, "Genus")
+phyobj_dmm <- merge_samples(phyobj_genus, "L6_DMM")
+phyobj_dmm = transform_sample_counts(phyobj_dmm, function(x) 100 * x/sum(x))
+top20otus = names(sort(taxa_sums(phyobj_dmm), TRUE)[1:10])
+taxtab20 = cbind(tax_table(phyobj_dmm), genus20 = NA)
+taxtab20[top20otus, "genus20"] <- as(tax_table(phyobj_dmm)[top20otus, "Genus"], "character")
+taxtab20[, "genus20"] <- substring(taxtab20[,"genus20"], 2)
+taxtab20[, "genus20"][taxtab20[, "genus20"] %in% ""] <- "Unclassified"
+taxtab20[, "genus20"][taxtab20[,"genus20"] %in% NA] <- "Other"
+#taxtab20[,"genus20"] <- as.character(factor(taxtab20[,"genus20"], levels=c("Streptococcus","[Prevotella]","Moraxella","Haemophilus","Neisseria", other.levels, "Unclassified")))
+tax_table(phyobj_dmm) <- tax_table(taxtab20)
+
+
+
+myColors <- c("darkgreen", "darkblue", "yellow", "red", "orange", "salmon", "darkseagreen1", "mediumorchid1", "gray40", "gray")
+myplot <- plot_bar(phyobj_dmm, x="L6_DMM", y="Abundance", fill = "genus20")
+plt1 <- myplot
+pd <- myplot$data
+pd$genus20[pd$genus20 %in% "[Prevotella]"] <- "Prevotella"
+other.levels <- unique(pd$genus20)
+other.levels <- other.levels[!other.levels %in% c("Streptococcus","Prevotella","Moraxella","Haemophilus", "Neisseria","Unclassified","Other")]
+pd$genus20 <- factor(pd$genus20, levels=c("Streptococcus","Prevotella","Moraxella","Haemophilus","Neisseria", as.character(other.levels), "Other", "Unclassified"))
+plt1 <- ggplot(pd, aes(x=Sample, y=Abundance, fill=genus20, color=NA)) + geom_bar(position="stack", stat="identity", size=0) +
+  scale_fill_manual("Genus", values=myColors) + scale_color_manual(values=myColors) +
+  xlab("DMM Cluster") + 
+  scale_x_discrete(labels=c("C1"="DMM1 (n=78)", "C2"="DMM2 (n=45)", "C3"="DMM3 (n=22)", "C4"="DMM4 (n=6)"))
+plt1
+ggsave("L6_DMM_StackedBarPlot.pdf", plt1, device=cairo_pdf, height=6.5, width=5.5)
+
+```
+

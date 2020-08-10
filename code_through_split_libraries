@@ -1,0 +1,610 @@
+~~~~~~~Generating quality trimmed demultiplexed fasta files~~~~~~~
+
+cd /data/NextSeq_data/NextSeq_Processed
+
+mkdir 160826_NS500170_0043_AHG5VKBGXY
+
+cd 160826_NS500170_0043_AHG5VKBGXY
+
+cp /data/NextSeq_data/NextSeq_data/160826_NS500170_0043_AHG5VKBGXY/RunInfo.xml .
+
+bcl2fastq --input-dir /data/NextSeq_data/NextSeq_data/160824_NS500170_0042_AH53MJBGXY/Data/Intensities/BaseCalls/ --output-dir .
+
+gunzip Undetermined_S0_L00*
+
+/data/Users/dfadrosh/scripts/FastQC/fastqc --nogroup *.fastq
+
+mkdir FASTQC
+
+mv *_fastqc* FASTQC
+
+flash -r 153 -f 253 -s 30 -m 25 -d ./Output_folder_L001/ -q Undetermined_S0_L001_R1_001.fastq Undetermined_S0_L001_R2_001.fastq
+flash -r 153 -f 253 -s 30 -m 25 -d ./Output_folder_L002/ -q Undetermined_S0_L002_R1_001.fastq Undetermined_S0_L002_R2_001.fastq
+flash -r 153 -f 253 -s 30 -m 25 -d ./Output_folder_L003/ -q Undetermined_S0_L003_R1_001.fastq Undetermined_S0_L003_R2_001.fastq
+flash -r 153 -f 253 -s 30 -m 25 -d ./Output_folder_L004/ -q Undetermined_S0_L004_R1_001.fastq Undetermined_S0_L004_R2_001.fastq 
+
+sed -n '1~4'p ./Output_folder_L001/out.extendedFrags.fastq > ./Output_folder_L001/FLAShReads.txt
+sed -n '1~4'p ./Output_folder_L002/out.extendedFrags.fastq > ./Output_folder_L002/FLAShReads.txt
+sed -n '1~4'p ./Output_folder_L003/out.extendedFrags.fastq > ./Output_folder_L003/FLAShReads.txt
+sed -n '1~4'p ./Output_folder_L004/out.extendedFrags.fastq > ./Output_folder_L004/FLAShReads.txt
+
+extract_barcodes.py -f Undetermined_S0_L001_R1_001.fastq -c barcode_in_label -s ':' -l 12 -o ./Output_folder_L001/extracted_barcodes_L001/
+extract_barcodes.py -f Undetermined_S0_L002_R1_001.fastq -c barcode_in_label -s ':' -l 12 -o ./Output_folder_L002/extracted_barcodes_L002/
+extract_barcodes.py -f Undetermined_S0_L003_R1_001.fastq -c barcode_in_label -s ':' -l 12 -o ./Output_folder_L003/extracted_barcodes_L003/
+extract_barcodes.py -f Undetermined_S0_L004_R1_001.fastq -c barcode_in_label -s ':' -l 12 -o ./Output_folder_L004/extracted_barcodes_L004/
+
+cp /data/Users/dfadrosh/scripts/filter_fasta_keep_order.py ./Output_folder_L001/extracted_barcodes_L001/
+python Output_folder_L001/extracted_barcodes_L001/filter_fasta_keep_order.py Output_folder_L001/extracted_barcodes_L001/barcodes.fastq Output_folder_L001/FLAShReads.txt 
+mv Index_filtered_ordered.fastq /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/Output_folder_L001/Index_filtered_ordered_L001.fastq
+
+cp /data/Users/dfadrosh/scripts/filter_fasta_keep_order.py ./Output_folder_L002/extracted_barcodes_L002/
+python Output_folder_L002/extracted_barcodes_L002/filter_fasta_keep_order.py Output_folder_L002/extracted_barcodes_L002/barcodes.fastq Output_folder_L002/FLAShReads.txt 
+mv Index_filtered_ordered.fastq /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/Output_folder_L002/Index_filtered_ordered_L002.fastq
+
+cp /data/Users/dfadrosh/scripts/filter_fasta_keep_order.py ./Output_folder_L003/extracted_barcodes_L003/
+python Output_folder_L003/extracted_barcodes_L003/filter_fasta_keep_order.py Output_folder_L003/extracted_barcodes_L003/barcodes.fastq Output_folder_L003/FLAShReads.txt 
+mv Index_filtered_ordered.fastq /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/Output_folder_L003/Index_filtered_ordered_L003.fastq
+
+cp /data/Users/dfadrosh/scripts/filter_fasta_keep_order.py ./Output_folder_L004/extracted_barcodes_L004/
+python Output_folder_L004/extracted_barcodes_L004/filter_fasta_keep_order.py Output_folder_L004/extracted_barcodes_L004/barcodes.fastq Output_folder_L004/FLAShReads.txt 
+mv Index_filtered_ordered.fastq /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/Output_folder_L004/Index_filtered_ordered_L004.fastq
+
+split_libraries_fastq.py -i Output_folder_L001/out.extendedFrags.fastq -b Output_folder_L001/Index_filtered_ordered_L001.fastq -o Output_folder_L001/splibs_L001  -m NextSeq_07122016_mapping.txt --rev_comp_mapping_barcodes --store_demultiplexed_fastq -r 0 -q 0 -n 100 -p 0.1 --barcode_type 12  
+split_libraries_fastq.py -i Output_folder_L002/out.extendedFrags.fastq -b Output_folder_L002/Index_filtered_ordered_L002.fastq -o Output_folder_L002/splibs_L002  -m NextSeq_07122016_mapping.txt --rev_comp_mapping_barcodes --store_demultiplexed_fastq -r 0 -q 0 -n 100 -p 0.1 --barcode_type 12  
+split_libraries_fastq.py -i Output_folder_L003/out.extendedFrags.fastq -b Output_folder_L003/Index_filtered_ordered_L003.fastq -o Output_folder_L003/splibs_L003  -m NextSeq_07122016_mapping.txt --rev_comp_mapping_barcodes --store_demultiplexed_fastq -r 0 -q 0 -n 100 -p 0.1 --barcode_type 12  
+split_libraries_fastq.py -i Output_folder_L004/out.extendedFrags.fastq -b Output_folder_L004/Index_filtered_ordered_L004.fastq -o Output_folder_L004/splibs_L004  -m NextSeq_07122016_mapping.txt --rev_comp_mapping_barcodes --store_demultiplexed_fastq -r 0 -q 0 -n 100 -p 0.1 --barcode_type 12  
+
+cat Output_folder_L001/splibs_L001/seqs.fastq Output_folder_L002/splibs_L002/seqs.fastq Output_folder_L003/splibs_L003/seqs.fastq Output_folder_L004/splibs_L004/seqs.fastq > seqs.fastq
+
+rm Undetermined*fastq 
+
+usearch -fastq_filter seqs.fastq  -fastq_maxee 2 --eeout -fastaout quality_seqs.fasta
+
+~~~~~~~Generation of representatively OTU table~~~~~~~
+mkdir /data/Users/dfadrosh/CORE/METCALFE
+
+cd /data/Users/dfadrosh/CORE/METCALFE
+
+filter_fasta.py -f /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/quality_seqs.fasta --sample_id_fp keep.list -o quality_seqs.fasta
+
+perl /data/Users/dfadrosh/scripts/drive5/bmp_uparse_pipeline.pl -i quality_seqs.fasta -o reads_uparse.fa
+
+usearch --derep_fulllength reads_uparse.fa -sizeout -output derep.fa -minuniquesize 2
+###############################################
+6:05 20.5Gb  100.0% Reading reads_uparse.fa
+27:28 24.1Gb 11235959 (11.2M) uniques, avg cluster 5.4, median 1, max 1813766
+1743463 uniques written, 9492496 clusters size < 2 discarded (84.5%)
+###############################################
+
+/data/Software/usearch8.0.1623_i86linux32 -sortbysize derep.fa -fastaout sorted.fa -minsize 2 
+###############################################
+00:06 598Mb  100.0% Reading derep.fa
+00:06 564Mb Getting sizes           
+00:10 578Mb Sorting 1743463 sequences
+00:17 585Mb  100.0% Writing output
+###############################################
+
+/data/Software/usearch8.0.1623_i86linux32 -cluster_otus sorted.fa -sizein -sizeout -otus otus.fa -uparseout otu_clustering.txt
+###############################################
+06:08  49Mb  100.0% 1042 OTUs, 371554 chimeras (21.3%)
+###############################################
+
+python /data/Users/dfadrosh/scripts/drive5/fasta_number.py otus.fa OTU_ > otus_numbered.fa
+
+usearch -usearch_global reads_uparse.fa -db otus_nonchimeras_numbered.fa -strand plus -id 0.97 -uc map.uc
+###############################################
+00:01  19Mb Reading otus_nonchimeras_numbered.fa, 243.9kb
+00:01  19Mb 921 seqs, min 155, avg 252, max 266nt
+00:01  19Mb  100.0% Masking
+00:01  20Mb  100.0% Word stats
+00:01  22Mb  100.0% Building slots
+00:01  22Mb  100.0% Build index   
+09:20 2.8Gb  100.0% Searching, 88.9% matched
+###############################################
+
+python /data/Users/dfadrosh/scripts/drive5/uc2otutab.py map.uc > otu_table.txt
+
+biom convert -i otu_table.txt -o otu_table_uparse.biom --to-hdf5 --table-type="OTU table"
+
+####Align OTU fasta files in preparation of tree making
+parallel_align_seqs_pynast.py -i otus_numbered.fa -o pynast_aligned_seqs -t /data/Users/dfadrosh/CORE/scripts/core_set_aligned.fasta.imputed -T -O 30
+
+####Filter alignment to remove gaps
+filter_alignment.py -i pynast_aligned_seqs/otus_numbered_aligned.fasta -m /data/Users/dfadrosh/CORE/scripts/lanemask_in_1s_and_0s -o pynast_aligned_seqs/pynast_filtered
+
+####Create the Phylogenetic Tree
+make_phylogeny.py -i pynast_aligned_seqs/pynast_filtered/otus_numbered_aligned_pfiltered.fasta -o otus_labeled_aligned_pfiltered.tre
+
+###Use grep to create a text file containing all of the OTUs that did not align.
+grep "OTU" pynast_aligned_seqs/otus_numbered_failures.fasta > pynast_aligned_seqs/otu.exclude.list
+
+####Remove the ">" from each line of the text file.
+cut -c 2- pynast_aligned_seqs/otu.exclude.list > pynast_aligned_seqs/otu.exclude.cleaned.list
+
+####filter biom OTU table to remove any OTUs that did not align, and include only OTUs that are present at at a threshold value or percentage.  Here I am filtering to 1/10,000 of a percent which in my case removed OTUs that have total read numbers less than ~600
+filter_otus_from_otu_table.py -i otu_table_uparse.biom -o otu_table_uparse_0.000001_filtered.biom --min_count_fraction 0.000001 -s 1 -e pynast_aligned_seqs/otu.exclude.cleaned.list
+
+####Assign Taxonomy
+assign_taxonomy.py -i otus_numbered.fa -o uchime_taxonomy -r /data/Greengenes_Database_May_2013/gg_13_5_otus/rep_set/97_otus.fasta -t /data/Greengenes_Database_May_2013/gg_13_5_otus/taxonomy/97_otu_taxonomy.txt
+
+####Add taxonomy to biom file
+biom add-metadata -i otu_table_uparse_0.000001_filtered.biom -o otu_table_uparse_0.000001_filtered_tax.biom --observation-metadata-fp uchime_taxonomy/otus_numbered_tax_assignments.txt --observation-header OTUID,taxonomy,confidence --sc-separated taxonomy --float-fields confidence
+
+####Convert biom to txt
+biom convert -i otu_table_uparse_0.000001_filtered_tax.biom -o otu_table_uparse_0.000001_filtered_tax.txt --to-tsv --header-key taxonomy --table-type "OTU table"
+
+####Create alpha rarefaction curves to assess read depth/rarefaction
+alpha_rarefaction.py -i otu_table_uparse_0.000001_filtered_tax.biom -o alpha_rarefaction -m /data/NextSeq_data/NextSeq_Processed/160826_NS500170_0043_AHG5VKBGXY/Alice_mapping_08312016.txt -f -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+biom summarize-table -i otu_table_uparse_0.000001_filtered_tax.biom -o otu_table_uparse_0.000001_filtered_tax.biom.summary
+
+~~~~~selecting multiple rarefying depth of 58978~~~~~
+
+####Run reprare script using bray curtis and 250 tables
+
+Rscript Multiply_Rarefy.R
+
+biom convert -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.txt -o otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom --to-hdf5 --table-type "OTU table" --process-obs-metadata taxonomy
+
+
+
+~~~~~~~filtering sample based on analysis (by_month, or cre+/cre- by_month) and running beta_diversity measures.~~~~~~~
+mkdir by_month
+
+mkdir by_month/2months
+mkdir by_month/3months
+mkdir by_month/4months
+mkdir by_month/5months
+mkdir by_month/6months
+mkdir by_month/7months
+mkdir by_month/8months
+mkdir by_month/9months
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/2months/mapping_subset.txt -s "Collection: 2 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/3months/mapping_subset.txt -s "Collection: 3 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/4months/mapping_subset.txt -s "Collection: 4 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/5months/mapping_subset.txt -s "Collection: 5 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/6months/mapping_subset.txt -s "Collection: 6 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/7months/mapping_subset.txt -s "Collection: 7 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/8months/mapping_subset.txt -s "Collection: 8 months"
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp by_month/9months/mapping_subset.txt -s "Collection: 9 months"
+
+
+beta_diversity_through_plots.py -i by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -m by_month/2months/mapping_subset.txt -o by_month/2months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -m by_month/3months/mapping_subset.txt -o by_month/3months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -m by_month/4months/mapping_subset.txt -o by_month/4months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -m by_month/5months/mapping_subset.txt -o by_month/5months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -m by_month/6months/mapping_subset.txt -o by_month/6months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -m by_month/7months/mapping_subset.txt -o by_month/7months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -m by_month/8months/mapping_subset.txt -o by_month/8months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -m by_month/9months/mapping_subset.txt -o by_month/9months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+
+cp /data/Users/dfadrosh/CORE/scripts/adonis_from_dm.R .
+
+cd by_month/2months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../3months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../4months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../5months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../6months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../7months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../8months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd by_month/9months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../../
+
+cd by_month/2months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/3months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/4months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/5months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/6months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/7months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/8months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+cd by_month/9months/beta_diversity
+cat bray_adonis.txt canberra_adonis.txt unweighted_unifrac_adonis.txt weighted_unifrac_adonis.txt > adonis_results.txt
+cd ../../../
+
+
+
+
+
+
+
+
+
+
+mkdir cre+
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/mapping_subset.txt -s "CreStatus: Cre+"
+
+
+mkdir cre-
+
+filter_samples_from_otu_table.py -i otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables.biom -o cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/mapping_subset.txt -s "CreStatus: Cre-"
+
+
+mkdir cre+/2months
+mkdir cre+/3months
+mkdir cre+/4months
+mkdir cre+/5months
+mkdir cre+/6months
+mkdir cre+/7months
+mkdir cre+/8months
+mkdir cre+/9months
+
+mkdir cre-/2months
+mkdir cre-/3months
+mkdir cre-/4months
+mkdir cre-/5months
+mkdir cre-/6months
+mkdir cre-/7months
+mkdir cre-/8months
+mkdir cre-/9months
+
+cd ..
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/2months/mapping_subset.txt -s "Collection: 2 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/3months/mapping_subset.txt -s "Collection: 3 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/4months/mapping_subset.txt -s "Collection: 4 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/5months/mapping_subset.txt -s "Collection: 5 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/6months/mapping_subset.txt -s "Collection: 6 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/7months/mapping_subset.txt -s "Collection: 7 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/8months/mapping_subset.txt -s "Collection: 8 months"
+
+filter_samples_from_otu_table.py -i cre+/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre+_only.biom -o cre+/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre+/9months/mapping_subset.txt -s "Collection: 9 months"
+
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/2months/mapping_subset.txt -s "Collection: 2 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/3months/mapping_subset.txt -s "Collection: 3 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/4months/mapping_subset.txt -s "Collection: 4 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/5months/mapping_subset.txt -s "Collection: 5 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/6months/mapping_subset.txt -s "Collection: 6 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/7months/mapping_subset.txt -s "Collection: 7 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/8months/mapping_subset.txt -s "Collection: 8 months"
+
+filter_samples_from_otu_table.py -i cre-/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_cre-_only.biom -o cre-/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -m Alice_mapping_08312016.txt --output_mapping_fp cre-/9months/mapping_subset.txt -s "Collection: 9 months"
+
+
+beta_diversity_through_plots.py -i cre+/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -m cre+/2months/mapping_subset.txt -o cre+/2months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -m cre+/3months/mapping_subset.txt -o cre+/3months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -m cre+/4months/mapping_subset.txt -o cre+/4months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -m cre+/5months/mapping_subset.txt -o cre+/5months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -m cre+/6months/mapping_subset.txt -o cre+/6months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -m cre+/7months/mapping_subset.txt -o cre+/7months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -m cre+/8months/mapping_subset.txt -o cre+/8months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre+/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -m cre+/9months/mapping_subset.txt -o cre+/9months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+
+beta_diversity_through_plots.py -i cre-/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -f -m cre-/2months/mapping_subset.txt -o cre-/2months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -f -m cre-/3months/mapping_subset.txt -o cre-/3months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -f -m cre-/4months/mapping_subset.txt -o cre-/4months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -f -m cre-/5months/mapping_subset.txt -o cre-/5months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -f -m cre-/6months/mapping_subset.txt -o cre-/6months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -f -m cre-/7months/mapping_subset.txt -o cre-/7months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -f -m cre-/8months/mapping_subset.txt -o cre-/8months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -f -m cre-/9months/mapping_subset.txt -o cre-/9months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+beta_diversity_through_plots.py -i cre-/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -f -m cre-/9months/mapping_subset.txt -o cre-/9months/beta_diversity -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt -t otus_labeled_aligned_pfiltered.tre
+
+
+cd cre+/2months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../3months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../4months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../5months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../6months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../7months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../8months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd by_month/9months/beta_diversity/
+Rscript ../../../adonis_from_dm.R
+
+
+cd ../../../cre-/2months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../3months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../4months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../5months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../6months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../7months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd ../../8months/beta_diversity/
+Rscript ../../../adonis_from_dm.R 
+
+cd by_month/9months/beta_diversity/
+Rscript ../../../adonis_from_dm.R
+
+cd ../../../
+
+
+~~~~~~~calculating alpha_rarefaction~~~~~~~
+alpha_rarefaction.py -i by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -o by_month/2months/alpha_rarefaction -m by_month/2months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -o by_month/3months/alpha_rarefaction -m by_month/3months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -o by_month/4months/alpha_rarefaction -m by_month/4months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -o by_month/5months/alpha_rarefaction -m by_month/5months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -o by_month/6months/alpha_rarefaction -m by_month/6months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -o by_month/7months/alpha_rarefaction -m by_month/7months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -o by_month/8months/alpha_rarefaction -m by_month/8months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -o by_month/9months/alpha_rarefaction -m by_month/9months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+
+alpha_rarefaction.py -i cre+/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/2months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/3months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/4months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/5months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/6months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/7months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/8months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre+/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -o cre+/2months/alpha_rarefaction -m cre+/9months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+
+alpha_rarefaction.py -i cre-/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/2months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/3months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/4months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/5months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/6months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/7months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/8months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+alpha_rarefaction.py -i cre-/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -o cre-/2months/alpha_rarefaction -f -m cre-/9months/mapping_subset.txt -t otus_labeled_aligned_pfiltered.tre -p /data/Users/dfadrosh/CORE/scripts/qiime_parameters_diversity.txt
+
+
+~~~~~~~making alpha diversity plots~~~~~~~
+mkdir by_month/2months/alpha_diversity
+mkdir by_month/3months/alpha_diversity
+mkdir by_month/4months/alpha_diversity
+mkdir by_month/5months/alpha_diversity
+mkdir by_month/6months/alpha_diversity
+mkdir by_month/7months/alpha_diversity
+mkdir by_month/8months/alpha_diversity
+mkdir by_month/9months/alpha_diversity
+
+
+~~~~~~~significantly enriched otus~~~~~~~
+mkdir by_month/2months/sig_enriched_otus
+mkdir by_month/3months/sig_enriched_otus
+mkdir by_month/4months/sig_enriched_otus
+mkdir by_month/5months/sig_enriched_otus
+mkdir by_month/6months/sig_enriched_otus
+mkdir by_month/7months/sig_enriched_otus
+mkdir by_month/8months/sig_enriched_otus
+mkdir by_month/9months/sig_enriched_otus
+
+biom convert -i by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.biom -o by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.biom -o by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.biom -o by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.biom -o by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.biom -o by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.biom -o by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.biom -o by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+biom convert -i by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.biom -o by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.txt --to-tsv --table-type "OTU-table" --header-key taxonomy
+
+
+cp by_month/2months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_2months_only.txt by_month/2months/otu_table_for_sig_enriched.txt
+cp by_month/3months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_3months_only.txt by_month/3months/otu_table_for_sig_enriched.txt
+cp by_month/4months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_4months_only.txt by_month/4months/otu_table_for_sig_enriched.txt
+cp by_month/5months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_5months_only.txt by_month/5months/otu_table_for_sig_enriched.txt
+cp by_month/6months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_6months_only.txt by_month/6months/otu_table_for_sig_enriched.txt
+cp by_month/7months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_7months_only.txt by_month/7months/otu_table_for_sig_enriched.txt
+cp by_month/8months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_8months_only.txt by_month/8months/otu_table_for_sig_enriched.txt
+cp by_month/9months/otu_table_uparse_0.000001_filtered_tax_58978reprare_bray_250tables_9months_only.txt by_month/9months/otu_table_for_sig_enriched.txt
+
+mv by_month/2months/otu_table_for_sig_enriched.txt by_month/2months/sig_enriched_otus 
+mv by_month/3months/otu_table_for_sig_enriched.txt by_month/3months/sig_enriched_otus
+mv by_month/4months/otu_table_for_sig_enriched.txt by_month/4months/sig_enriched_otus
+mv by_month/5months/otu_table_for_sig_enriched.txt by_month/5months/sig_enriched_otus
+mv by_month/6months/otu_table_for_sig_enriched.txt by_month/6months/sig_enriched_otus
+mv by_month/7months/otu_table_for_sig_enriched.txt by_month/7months/sig_enriched_otus
+mv by_month/8months/otu_table_for_sig_enriched.txt by_month/8months/sig_enriched_otus
+mv by_month/9months/otu_table_for_sig_enriched.txt by_month/9months/sig_enriched_otus
+
+cp by_month/2months/mapping_subset.txt by_month/2months/sig_enriched_otus 
+cp by_month/3months/mapping_subset.txt by_month/3months/sig_enriched_otus
+cp by_month/4months/mapping_subset.txt by_month/4months/sig_enriched_otus
+cp by_month/5months/mapping_subset.txt by_month/5months/sig_enriched_otus
+cp by_month/6months/mapping_subset.txt by_month/6months/sig_enriched_otus
+cp by_month/7months/mapping_subset.txt by_month/7months/sig_enriched_otus
+cp by_month/8months/mapping_subset.txt by_month/8months/sig_enriched_otus
+cp by_month/9months/mapping_subset.txt by_month/9months/sig_enriched_otus
+
+
+
+cp ThreeModel_LabCode_26Sept16.R by_month/2months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/3months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/4months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/5months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/6months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/7months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/8months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16.R by_month/9months/sig_enriched_otus/
+
+cp ThreeModel_Postprocessing.R by_month/2months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/3months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/4months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/5months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/6months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/7months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/8months/sig_enriched_otus/
+cp ThreeModel_Postprocessing.R by_month/9months/sig_enriched_otus/
+
+cd by_month/2months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../3months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../4months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../5months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../6months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../7months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../8months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../9months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16.R
+Rscript ThreeModel_Postprocessing.R
+
+cd ../../../
+
+cp ThreeModel_LabCode_26Sept16_2.R by_month/2months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/3months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/4months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/5months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/6months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/7months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/8months/sig_enriched_otus/
+cp ThreeModel_LabCode_26Sept16_2.R by_month/9months/sig_enriched_otus/
+
+cp ThreeModel_Postprocessing_2.R by_month/2months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/3months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/4months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/5months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/6months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/7months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/8months/sig_enriched_otus/
+cp ThreeModel_Postprocessing_2.R by_month/9months/sig_enriched_otus/
+
+cd by_month/2months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../3months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../4months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../5months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../6months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../7months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../8months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../9months/sig_enriched_otus/
+Rscript ThreeModel_LabCode_26Sept16_2.R
+Rscript ThreeModel_Postprocessing_2.R
+
+cd ../../../
+
